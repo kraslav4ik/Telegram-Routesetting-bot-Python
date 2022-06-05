@@ -7,7 +7,7 @@ from Bot import RoutesettingBot
 def init_logger():
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
-    fle_handler = logging.FileHandler('data\\logs', mode='w', encoding='UTF-16')
+    fle_handler = logging.FileHandler('data/logs', mode='w', encoding='UTF-16')
     fle_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     fle_handler.setFormatter(fle_format)
     logger.addHandler(fle_handler)

@@ -12,7 +12,7 @@ class TestTableTools(unittest.TestCase):
     @freeze_time('2022-05-13')
     def setUp(self) -> None:
         from src import TableTools
-        self.table = TableTools.RoutesetterTable(path='data\\Routesetting-Test.xlsx')
+        self.table = TableTools.RoutesetterTable(path='data/Routesetting-Test.xlsx')
 
     def test_init(self):
         self.assertEqual(self.table.current_date, datetime.date(2022, 5, 13).strftime('%d.%m.%Y'))

@@ -12,7 +12,7 @@ from src.Menu import Menu
 class TestMenu(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.menu = Menu(table_path='data\\Routesetting-Test.xlsx')
+        self.menu = Menu(table_path='data/Routesetting-Test.xlsx')
         self.token = ''  # bot_token
         self.bot_id = 0  # bot_id
         self.update_id = 0  # update_id

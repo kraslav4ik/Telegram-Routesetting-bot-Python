@@ -1,6 +1,7 @@
 import logging
 import openpyxl
 import datetime
+import os
 from collections import defaultdict
 from calendar import Calendar
 from typing import Dict, List, Union, Tuple
@@ -58,7 +59,7 @@ class ResultStatus(Enum):
 
 
 class RoutesetterTable(object):
-    def __init__(self, path='data\\Routesetting.xlsx', logger=None):
+    def __init__(self, path=os.path.join('data', 'Routesetting.xlsx'), logger=None):
         self.tablepath = path
         self.logger = logger or logging.getLogger(__name__)
         self.__set_date()
