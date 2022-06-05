@@ -70,7 +70,7 @@ class Menu:
             richest = self.table.richest_user()
             mes_text = "Вы не крутили в этом месяце."
             if len(richest) == 1:
-                mes_text = f'Самый богатый сеттер: {richest[0][0]}, ему(ей) нужен отдых :)'
+                mes_text = f'Самый богатый сеттер: {richest[0]}, ему(ей) нужен отдых :)'
             elif len(richest) > 1:
                 names = ', '.join([i[0] for i in richest])
                 mes_text = f'{names} самые богатые. Им нужен отдых :)'
