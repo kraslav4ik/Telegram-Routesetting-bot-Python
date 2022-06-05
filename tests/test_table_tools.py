@@ -1,7 +1,15 @@
 import unittest
 import datetime
+import os
 from pycel import ExcelCompiler
+import sys
 from freezegun import freeze_time
+
+fpath = os.path.join(os.path.dirname(__file__), '../src')
+sys.path.append(fpath)
+print(sys.path)
+
+
 from TableTools import STARTS_FIRST_COL, LAST_DATE_COL, DATE_ROW, \
     SETTER_ROW_RANGE, SETTER_COLUMN, SALARY_COLUMN, RESULTS_COLUMN, MONTHS,\
     FIRST_CONTEST_COL, SECOND_CONTEST_COL, CONTEST_PRICE_ROW, CONTEST_NAME_ROW, SetterStatus, ContestStatus, ResultStatus
@@ -11,8 +19,8 @@ class TestTableTools(unittest.TestCase):
 
     @freeze_time('2022-05-13')
     def setUp(self) -> None:
-        from src import TableTools
-        self.table = TableTools.RoutesetterTable(path='data/Routesetting-Test.xlsx')
+        from TableTools import RoutesetterTable
+        self.table = RoutesetterTable(path='../data/Routesetting-Test.xlsx')
 
     def test_init(self):
         self.assertEqual(self.table.current_date, datetime.date(2022, 5, 13).strftime('%d.%m.%Y'))
