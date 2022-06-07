@@ -34,6 +34,33 @@ def is_admin_message(update: Update, context: CallbackContext) -> bool:
     logger.info(f'{user} tried to send the "{message}"')
     chat_member = context.bot.getChatMember(chat_id, user_id)
     if chat_member.status != constants.CHATMEMBER_CREATOR:
-        update.message.reply_text(f'Ты не Босс. Только он может написать {message}')
         return False
+    with open('data/user_data') as admin_id_file:
+        admin_id = int(admin_id_file.read().strip())
+        if user_id != admin_id:
+            return False
+    with open('data/chat_data') as setter_chat_id_file:
+        setter_chat_id = int(setter_chat_id_file.read().strip())
+        if chat_id != setter_chat_id:
+            return False
     return True
+
+
+def is_setters_chat(func):
+    def wrapper(*args):
+        update = None
+        for arg in args:
+            if isinstance(arg, Update):
+                update = arg
+        if not update:
+            return
+        chat_id = update.effective_chat.id
+        username = update.effective_user.username
+        mes = update.effective_message.text
+        with open('data/chat_data') as setter_chat_id_file:
+            setter_chat_id = int(setter_chat_id_file.read().strip())
+        if chat_id != setter_chat_id:
+            logger.info(f'{username} tried to write the command {mes} in chat {chat_id}')
+            return
+        return func(*args)
+    return wrapper

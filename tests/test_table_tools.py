@@ -5,10 +5,10 @@ from pycel import ExcelCompiler
 import sys
 from freezegun import freeze_time
 
+print(os.path.dirname(__file__))
 fpath = os.path.join(os.path.dirname(__file__), '../src')
 sys.path.append(fpath)
 print(sys.path)
-
 
 from TableTools import STARTS_FIRST_COL, LAST_DATE_COL, DATE_ROW, \
     SETTER_ROW_RANGE, SETTER_COLUMN, SALARY_COLUMN, RESULTS_COLUMN, MONTHS,\

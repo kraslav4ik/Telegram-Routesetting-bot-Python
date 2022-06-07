@@ -3,9 +3,9 @@ import logging
 import time
 from collections import defaultdict
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import CallbackContext, ConversationHandler
+from telegram.ext import CallbackContext
 
-from utils import get_button_tap_info, is_admin_choice
+from utils import get_button_tap_info, is_admin_choice, is_setters_chat
 from TableTools import RoutesetterTable
 
 
@@ -14,6 +14,7 @@ class Scheduler:
         self.logger = logger or logging.getLogger(__name__)
         self.table = RoutesetterTable()
 
+    @is_setters_chat
     def set_default_jobs(self, update: Update, context: CallbackContext) -> None:
         chat_id = update.effective_chat.id
         # context.job_queue.run_once(self.new_month, 5, context=chat_id, name='new_month')
@@ -119,6 +120,7 @@ class Scheduler:
         context.bot.send_poll(chat_id, 'Когда крутим?', days, is_anonymous=False, allows_multiple_answers=True)
 
     def after_setting_poll(self, context: CallbackContext, chat_id) -> None:
+        context.bot_data.update({})
         words = ['5', '6a', '6bc', '7abc', 'джокеров']
         options = ['0', '1', '2', '3', '4', '5']
         payloads = defaultdict(dict)
@@ -135,6 +137,8 @@ class Scheduler:
         context.bot_data.update(payloads)
 
     def receive_after_setting_poll(self, update: Update, context: CallbackContext) -> None:
+        if not context.bot_data:
+            return
         answer = update.poll_answer
         poll_id = answer.poll_id
         selected_options = answer.option_ids

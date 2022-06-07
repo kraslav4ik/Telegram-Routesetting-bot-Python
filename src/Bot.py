@@ -4,7 +4,7 @@ from telegram.ext import CallbackContext, ConversationHandler
 
 from Scheduler import Scheduler
 from Menu import Menu
-from utils import get_button_tap_info, is_admin_choice
+from utils import get_button_tap_info, is_admin_choice, is_setters_chat
 
 
 class RoutesettingBot:
@@ -30,6 +30,7 @@ class RoutesettingBot:
 Удачи!
                             """
 
+    @is_setters_chat
     def start(self, update: Update, context: CallbackContext) -> None:
         user = update.effective_user.username.strip().lower()
         self.logger.info(f'{user} wrote the "/start" or "/help" command')
@@ -45,6 +46,7 @@ class RoutesettingBot:
         self.logger.info('bot answered to the unknown command')
         return
 
+    @is_setters_chat
     def stop(self, update: Update, context: CallbackContext):
         user = update.message.from_user
         self.logger.info("User %s canceled the conversation.", user.username)

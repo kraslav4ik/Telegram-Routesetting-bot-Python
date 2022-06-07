@@ -5,7 +5,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, ConversationHandler
 
 from TableTools import RoutesetterTable, SetterStatus, ContestStatus, ResultStatus
-from utils import is_admin_choice, is_admin_message, get_button_tap_info
+from utils import is_admin_choice, is_admin_message, get_button_tap_info, is_setters_chat
 
 
 class Menu:
@@ -20,6 +20,7 @@ class Menu:
         self.START, self.AWAIT_RESULT = range(2)
         self.activity = None
 
+    @is_setters_chat
     def setter_menu(self, update: Update, context: CallbackContext) -> None:
         message = update.effective_message.text
         user = update.effective_user.username.strip().lower()
@@ -109,18 +110,20 @@ class Menu:
             context.bot.send_message(update.effective_chat.id, text='Error while reading excel table')
         return ConversationHandler.END
 
+    @is_setters_chat
     def admin_menu(self, update: Update, context: CallbackContext):
-        if is_admin_message(update, context):
-            keyboard = [[InlineKeyboardButton('Добавить рутсеттера', callback_data='add_setter')],
-                        [InlineKeyboardButton('Удалить рутсеттера', callback_data='remove_setter')],
-                        [InlineKeyboardButton('Добавить контест', callback_data='add_contest')],
-                        [InlineKeyboardButton('Удалить последний добавленный контест', callback_data='remove_contest')],
-                        [InlineKeyboardButton('Изменить накрутку на следующей(или уже этой) неделе', callback_data='change')]]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            update.message.reply_text('Please choose:', reply_markup=reply_markup)
-            self.logger.info('Bot offered an admin_menu')
-            return self.ADMIN_START
-        return
+        if not is_admin_message(update, context):
+            update.message.reply_text(f'Ты не Босс. Только он может написать {update.effective_message.text}')
+            return
+        keyboard = [[InlineKeyboardButton('Добавить рутсеттера', callback_data='add_setter')],
+                    [InlineKeyboardButton('Удалить рутсеттера', callback_data='remove_setter')],
+                    [InlineKeyboardButton('Добавить контест', callback_data='add_contest')],
+                    [InlineKeyboardButton('Удалить последний добавленный контест', callback_data='remove_contest')],
+                    [InlineKeyboardButton('Изменить накрутку на следующей(или уже этой) неделе', callback_data='change')]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        update.message.reply_text('Please choose:', reply_markup=reply_markup)
+        self.logger.info('Bot offered an admin_menu')
+        return self.ADMIN_START
 
     def add_setter_button(self, update: Update, context: CallbackContext):
         info = get_button_tap_info(update)
@@ -145,14 +148,14 @@ class Menu:
         setter_name = update.effective_message.text.strip().lower()
         self.logger.info(f'Owner sent "{setter_name}"')
         if self.activity:
-            status = self.table.add_setter(setter_name)
+            status = self.table.add_setter(setter_name).value
             if status == SetterStatus.ADDED.value:
                 bot_mes = f'Сеттер {setter_name} успешно добавлен'
             elif status == SetterStatus.ALREADY_EXISTS.value:
                 bot_mes = f'Сеттер {setter_name} уже есть в таблице. Попробуйте снова (/admin_menu)'
             context.bot.send_message(update.effective_chat.id, text=bot_mes)
             return ConversationHandler.END
-        status = self.table.remove_setter(setter_name)
+        status = self.table.remove_setter(setter_name).value
         if status == SetterStatus.REMOVED.value:
             bot_mes = f'Сеттер {setter_name} удален'
         elif status == SetterStatus.NOT_FOUND.value:
@@ -192,12 +195,12 @@ class Menu:
             for setter in setters:
                 status = self.table.add_contest_setter(setter.lower().strip()).value
                 if status == ContestStatus.IS_CONTEST_SETTER.value:
-                    context.bot.send_message(update.effective_chat.id, text=f'Сеттер {setter} крутит контест')
+                    context.bot.send_message(update.effective_chat.id, text=f'Сеттер {setter} будет крутить контест')
                     time.sleep(0.9)
                     continue
                 if status == ContestStatus.SETTER_ABSENT.value:
-                    message = 'Введите(ОТВЕТОМ НА ЭТО СООБЩЕНИЕ) рутсеттеров которые крутят контест в формате: @setter1 @setter2\nНапример:\n@rutserser @nerutserser'
-                    context.bot.send_message(update.effective_chat.id, text=f'Сеттеру {setter} не добавлен контест. Его нет в таблице. Попробуйте еще раз')
+                    context.bot.send_message(update.effective_chat.id, text=f'Сеттеру {setter} не добавлен контест. Его нет в таблице. Попробуйте добавить его еще раз')
+                    message = 'Введите(ОТВЕТОМ НА ЭТО СООБЩЕНИЕ) рутсеттеров которые еще не добавлены, в формате: @setter1 @setter2\nНапример:\n@rutserser @nerutserser'
                     context.bot.send_message(update.effective_chat.id, text=message)
                     return self.AWAIT_PEOPLE
         except Exception as e:

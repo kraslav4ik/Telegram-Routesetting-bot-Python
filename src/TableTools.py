@@ -276,7 +276,7 @@ class RoutesetterTable(object):
             contest_name = self.current_month_sh_w.cell(row=3, column=self.contest_col).value
             if not self.current_month_sh_w.cell(row=contest_row, column=RESULTS_COLUMN).value:
                 self.current_month_sh_w.cell(row=contest_row, column=RESULTS_COLUMN).value = contest_name
-            else:
+            elif not self.current_month_sh_w.cell(row=contest_row, column=RESULTS_COLUMN).value.endswith(contest_name):
                 self.current_month_sh_w.cell(row=contest_row, column=RESULTS_COLUMN).value += f' & {contest_name}'
             self.workbook_w.save(self.tablepath)
             self.__open()
