@@ -52,19 +52,20 @@ class Scheduler:
                     [InlineKeyboardButton('Не крутим', callback_data='Нет')]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         context.bot.send_message(chat_id, text='Когда будем крутить на следующей неделе?', reply_markup=reply_markup)
-        self.logger.info('Bot offered a menu with weekly work')
+        job_removed = self.remove_job('weekly job', context)
+        mes = 'Bot offered a menu with weekly work'
+        if job_removed:
+            mes += ' and old weekly work is deleted'
+        self.logger.info(mes)
         return
 
     def handle_weekly_schedule(self, context: CallbackContext, days, chat_id) -> None:
-        job_removed = self.remove_job('weekly job', context)
         if days:
             # context.job_queue.run_once(self.setting_result, 5, context=chat_id)
             context.job_queue.run_daily(self.setting_result, context=chat_id, name='weekly job', time=datetime.time(hour=10, minute=00, second=00), days=days)
             message = 'new weekly work added'
         else:
             message = 'no added work this week'
-        if job_removed:
-            message += ' and old one is deleted'
         self.logger.info(message)
         return
 

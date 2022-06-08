@@ -5,10 +5,12 @@ from pycel import ExcelCompiler
 import sys
 from freezegun import freeze_time
 
-print(os.path.dirname(__file__))
-fpath = os.path.join(os.path.dirname(__file__), '../src')
+# print(os.path.dirname(__file__))
+# print(os.getcwd())
+fpath = os.path.normpath(os.path.join(os.path.dirname(__file__), "../src"))
 sys.path.append(fpath)
-print(sys.path)
+# print(sys.path)
+# print(fpath)
 
 from TableTools import STARTS_FIRST_COL, LAST_DATE_COL, DATE_ROW, \
     SETTER_ROW_RANGE, SETTER_COLUMN, SALARY_COLUMN, RESULTS_COLUMN, MONTHS,\
@@ -20,7 +22,7 @@ class TestTableTools(unittest.TestCase):
     @freeze_time('2022-05-13')
     def setUp(self) -> None:
         from TableTools import RoutesetterTable
-        self.table = RoutesetterTable(path='../data/Routesetting-Test.xlsx')
+        self.table = RoutesetterTable(path='data/Routesetting-Test.xlsx')
 
     def test_init(self):
         self.assertEqual(self.table.current_date, datetime.date(2022, 5, 13).strftime('%d.%m.%Y'))
@@ -157,11 +159,11 @@ class TestTableTools(unittest.TestCase):
                 self.assertEqual(self.table.current_month_sh_r.cell(column=data['col'], row=name_row).value, data["name"])
                 self.assertEqual(self.table.current_month_sh_r.cell(column=data['col'], row=DATE_ROW).value, data['date'])
 
-            for column in (FIRST_CONTEST_COL, SECOND_CONTEST_COL):
-                self.table.current_month_sh_w.cell(row=3, column=column).value = None
-                self.table.current_month_sh_w.cell(row=DATE_ROW, column=column).value = None
-                self.table.current_month_sh_w.cell(row=5, column=column).value = None
-            self.table.workbook_w.save(self.table.tablepath)
+        for column in (FIRST_CONTEST_COL, SECOND_CONTEST_COL):
+            self.table.current_month_sh_w.cell(row=3, column=column).value = None
+            self.table.current_month_sh_w.cell(row=DATE_ROW, column=column).value = None
+            self.table.current_month_sh_w.cell(row=5, column=column).value = None
+        self.table.workbook_w.save(self.table.tablepath)
 
     def test_add_contest_setter(self):
         expected_res = {'@kraslav4ik': ContestStatus.IS_CONTEST_SETTER.value, '@her_s_gory': ContestStatus.SETTER_ABSENT.value}

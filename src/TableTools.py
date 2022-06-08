@@ -327,7 +327,7 @@ class RoutesetterTable(object):
                 self.current_month_sh_w.cell(row=row_ind, column=col_ind).value = amount
                 break
         else:
-            self.logger.info(f"user '{username}' voted or wrote the results but he isn't in table. His result hadn't taken")
+            self.logger.info(f"user '{username}' voted or wrote the results but he isn't in table. His result isn't taken")
             return ResultStatus.NOT_SETTER
         difficulty = self.current_month_sh_w.cell(row=row_ind, column=GRADES_COLUMN).value
         self.logger.info(f"{username}'s result: {difficulty}: {amount}  at {date} added successfully")
