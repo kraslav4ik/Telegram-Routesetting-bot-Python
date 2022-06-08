@@ -17,12 +17,16 @@ class Scheduler:
     @is_setters_chat
     def set_default_jobs(self, update: Update, context: CallbackContext) -> None:
         chat_id = update.effective_chat.id
+        if context.job_queue.get_jobs_by_name('new_month'):
+            self.logger.info('Default jobs are already exist and will not be added again')
+            return
         # context.job_queue.run_once(self.new_month, 5, context=chat_id, name='new_month')
         context.job_queue.run_monthly(self.new_month, context=chat_id, name='new_month', when=datetime.time(hour=9, minute=00, second=00), day=30)
-        # context.job_queue.run_once(self.new_week, 8, context=chat_id, name='new_week')
+        # context.job_queue.run_once(self.new_week, 5, context=chat_id, name='new_week')
         context.job_queue.run_daily(self.new_week, context=chat_id, name='new_week', time=datetime.time(hour=9, minute=00, second=00), days=(6,))
+        # context.job_queue.run_daily(self.new_week, context=chat_id, name='new_week', time=datetime.time(hour=12, minute=27, second=30), days=(2,))
         context.job_queue.run_daily(self.new_day, context=chat_id, name='new_day', time=datetime.time(hour=00, minute=00, second=00), days=(0, 1, 2, 3, 4, 5, 6))
-        return
+        self.logger.info('monthly, weekly and daily jobs are added to the job_queue')
 
     def new_month(self, context: CallbackContext) -> None:
         context.bot.send_message(context.job.context, text='Текущий месяц подходит к концу')
@@ -37,14 +41,13 @@ class Scheduler:
             context.bot.send_message(context.job.context, text=f'{key}\n{result}')
             time.sleep(1)
         self.logger.info('Bot shown the month results')
-        return
 
     def new_day(self, _: CallbackContext) -> None:
         self.logger.info('Bot got the new day')
         return self.table.on_scheduler_new_day()
 
     def new_week(self, context: CallbackContext) -> None:
-        chat_id = ''.join([str(job.context) for job in context.job_queue.get_jobs_by_name('new_week')])
+        chat_id = int(''.join([str(job.context) for job in context.job_queue.get_jobs_by_name('new_week')]))
         self.logger.info('There is a sunday(or owner wants to change days), bot offered to choose the setting day(s)')
         keyboard = [[InlineKeyboardButton('Вторник', callback_data='ВТ')],
                     [InlineKeyboardButton('Четверг', callback_data='ЧТ')],
@@ -57,7 +60,6 @@ class Scheduler:
         if job_removed:
             mes += ' and old weekly work is deleted'
         self.logger.info(mes)
-        return
 
     def handle_weekly_schedule(self, context: CallbackContext, days, chat_id) -> None:
         if days:
@@ -67,7 +69,6 @@ class Scheduler:
         else:
             message = 'no added work this week'
         self.logger.info(message)
-        return
 
     def remove_job(self, name: str, context: CallbackContext) -> bool:
         current_week_jobs = context.job_queue.get_jobs_by_name(name)
@@ -84,7 +85,6 @@ class Scheduler:
             days = (1,)
             self.handle_weekly_schedule(context, days, chat_id)
             self.weekly_poll(context, chat_id, ['Кручу во Вторник', 'Не кручу'])
-        return
 
     def handle_thursday(self, update: Update, context: CallbackContext) -> None:
         info = get_button_tap_info(update)
@@ -93,7 +93,6 @@ class Scheduler:
             days = (3,)
             self.handle_weekly_schedule(context, days, chat_id)
             self.weekly_poll(context, chat_id, ['Кручу в Четверг', 'Не кручу'])
-        return
 
     def handle_tt(self, update: Update, context: CallbackContext) -> None:
         info = get_button_tap_info(update)
@@ -102,7 +101,6 @@ class Scheduler:
             days = (1, 3)
             self.handle_weekly_schedule(context, days, chat_id)
             self.weekly_poll(context, chat_id, ['Вторник', 'Четверг'])
-        return
 
     def handle_not(self, update: Update, context: CallbackContext) -> None:
         info = get_button_tap_info(update)
@@ -110,7 +108,6 @@ class Scheduler:
         if is_admin_choice(context, info):
             days = ()
             self.handle_weekly_schedule(context, days, chat_id)
-        return
 
     def setting_result(self, context: CallbackContext) -> None:
         job = context.job
