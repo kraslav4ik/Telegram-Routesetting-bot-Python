@@ -54,6 +54,7 @@ class RoutesettingBot:
     def change_button(self, update: Update, context: CallbackContext):
         info = get_button_tap_info(update)
         if is_admin_choice(context, info):
+            self.menu.menu_option(update, context)
             self.scheduler.new_week(context)
             return ConversationHandler.END
         return self.menu.ADMIN_START

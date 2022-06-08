@@ -128,6 +128,7 @@ class Menu:
         info = get_button_tap_info(update)
         chat_id = info['chat_id']
         if is_admin_choice(context, info):
+            self.menu_option(update, context)
             context.bot.send_message(chat_id, text='Введите (ОТВЕТОМ НА ЭТО СООБЩЕНИЕ) рутсеттера которого нужно добавить: @сеттер')
             self.activity = True
             return self.AWAIT_SETTER
@@ -137,6 +138,7 @@ class Menu:
         info = get_button_tap_info(update)
         chat_id = info['chat_id']
         if is_admin_choice(context, info):
+            self.menu_option(update, context)
             context.bot.send_message(chat_id, text='Введите (ОТВЕТОМ НА ЭТО СООБЩЕНИЕ) рутсеттера которого нужно удалить: @сеттер')
             self.activity = False
             return self.AWAIT_SETTER
@@ -167,6 +169,7 @@ class Menu:
         info = get_button_tap_info(update)
         chat_id = info['chat_id']
         if is_admin_choice(context, info):
+            self.menu_option(update, context)
             context.bot.send_message(chat_id, text=message)
             return self.AWAIT_CONTEST
         return self.ADMIN_START
@@ -213,6 +216,7 @@ class Menu:
             info = get_button_tap_info(update)
             chat_id = info['chat_id']
             if is_admin_choice(context, info):
+                self.menu_option(update, context)
                 status = self.table.remove_contest().value
                 if status == ContestStatus.REMOVED.value:
                     context.bot.send_message(chat_id, text=message)

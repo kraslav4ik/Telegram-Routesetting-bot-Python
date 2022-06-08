@@ -3,5 +3,5 @@ venv
 **/__pycache__
 .idea
 data/logs
-data/user_data
+data/bot_owner_data
 data/chat_data

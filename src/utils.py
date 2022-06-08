@@ -7,6 +7,10 @@ logger = logging.getLogger('utils')
 
 
 def is_admin_choice(context: CallbackContext, info) -> bool:
+    with open('data/bot_owner_data') as admin_id_file:
+        admin_id = int(admin_id_file.read().strip())
+        if info['user_id'] == admin_id:
+            return True
     chat_member = context.bot.getChatMember(info['chat_id'], info['user_id'])
     if chat_member.status != constants.CHATMEMBER_CREATOR:
         info['query'].answer(text='Ты не Босс. Только он может выбрать')
@@ -32,17 +36,13 @@ def is_admin_message(update: Update, context: CallbackContext) -> bool:
     chat_id = update.effective_chat.id
     user_id = update.effective_user.id
     logger.info(f'{user} tried to send the "{message}"')
+    with open('data/bot_owner_data') as admin_id_file:
+        admin_id = int(admin_id_file.read().strip())
+        if user_id == admin_id:
+            return True
     chat_member = context.bot.getChatMember(chat_id, user_id)
     if chat_member.status != constants.CHATMEMBER_CREATOR:
         return False
-    with open('data/user_data') as admin_id_file:
-        admin_id = int(admin_id_file.read().strip())
-        if user_id != admin_id:
-            return False
-    with open('data/chat_data') as setter_chat_id_file:
-        setter_chat_id = int(setter_chat_id_file.read().strip())
-        if chat_id != setter_chat_id:
-            return False
     return True
 
 

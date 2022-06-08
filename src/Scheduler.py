@@ -61,7 +61,7 @@ class Scheduler:
             mes += ' and old weekly work is deleted'
         self.logger.info(mes)
 
-    def handle_weekly_schedule(self, context: CallbackContext, days, chat_id) -> None:
+    def handle_weekly_schedule(self, context: CallbackContext, days, chat_id, query) -> None:
         if days:
             # context.job_queue.run_once(self.setting_result, 5, context=chat_id)
             context.job_queue.run_daily(self.setting_result, context=chat_id, name='weekly job', time=datetime.time(hour=10, minute=00, second=00), days=days)
@@ -69,6 +69,8 @@ class Scheduler:
         else:
             message = 'no added work this week'
         self.logger.info(message)
+        query.edit_message_text(text=f"Выбранный вариант: {query.data}.")
+        self.logger.info(f'Owner selected "{query.data}"')
 
     def remove_job(self, name: str, context: CallbackContext) -> bool:
         current_week_jobs = context.job_queue.get_jobs_by_name(name)
@@ -83,7 +85,7 @@ class Scheduler:
         chat_id = info['chat_id']
         if is_admin_choice(context, info):
             days = (1,)
-            self.handle_weekly_schedule(context, days, chat_id)
+            self.handle_weekly_schedule(context, days, chat_id, info['query'])
             self.weekly_poll(context, chat_id, ['Кручу во Вторник', 'Не кручу'])
 
     def handle_thursday(self, update: Update, context: CallbackContext) -> None:
@@ -91,7 +93,7 @@ class Scheduler:
         chat_id = info['chat_id']
         if is_admin_choice(context, info):
             days = (3,)
-            self.handle_weekly_schedule(context, days, chat_id)
+            self.handle_weekly_schedule(context, days, chat_id, info['query'])
             self.weekly_poll(context, chat_id, ['Кручу в Четверг', 'Не кручу'])
 
     def handle_tt(self, update: Update, context: CallbackContext) -> None:
@@ -99,7 +101,7 @@ class Scheduler:
         chat_id = info['chat_id']
         if is_admin_choice(context, info):
             days = (1, 3)
-            self.handle_weekly_schedule(context, days, chat_id)
+            self.handle_weekly_schedule(context, days, chat_id, info['query'])
             self.weekly_poll(context, chat_id, ['Вторник', 'Четверг'])
 
     def handle_not(self, update: Update, context: CallbackContext) -> None:
@@ -107,7 +109,7 @@ class Scheduler:
         chat_id = info['chat_id']
         if is_admin_choice(context, info):
             days = ()
-            self.handle_weekly_schedule(context, days, chat_id)
+            self.handle_weekly_schedule(context, days, chat_id, info['query'])
 
     def setting_result(self, context: CallbackContext) -> None:
         job = context.job
