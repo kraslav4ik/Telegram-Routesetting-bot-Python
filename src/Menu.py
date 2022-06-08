@@ -175,7 +175,7 @@ class Menu:
         try:
             message = 'Введите(ОТВЕТОМ НА ЭТО СООБЩЕНИЕ) рутсеттеров которые крутят контест в формате: @setter1 @setter2\nНапример:\n@rutserser @nerutserser'
             contest_date, contest_name, contest_money = update.effective_message.text.split()
-            status = self.table.add_contest(f"'{contest_date}", contest_name, int(contest_money)).value
+            status = self.table.add_contest(f"_{contest_date}", contest_name, int(contest_money)).value
             if status == ContestStatus.ADDED.value:
                 context.bot.send_message(update.effective_chat.id, text=f'Данные о контесте успешно добавлены\n{message}')
                 return self.AWAIT_PEOPLE
