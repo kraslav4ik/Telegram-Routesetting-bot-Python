@@ -77,7 +77,6 @@ class RoutesetterTable(object):
         if self.current_month == 12:
             self.next_month = 1
             self.year_to_use = self.current_year + 1
-        return
 
     def __open(self) -> None:
         try:
@@ -90,6 +89,7 @@ class RoutesetterTable(object):
                 self.new_sheet(self.current_month, self.current_year)
             self.current_month_sh_r = self.workbook_r[self.current_month_name]
             self.current_month_sh_w = self.workbook_w[self.current_month_name]
+            self.contests = 0
             if self.current_month_sh_r.cell(row=5, column=14).value:
                 self.contests = 2
                 self.contest_col = SECOND_CONTEST_COL
@@ -98,10 +98,8 @@ class RoutesetterTable(object):
                 self.contests = 1
                 self.contest_col = FIRST_CONTEST_COL
                 return
-            self.contests = 0
         except Exception as e:
             self.logger.error(f'Error while excel opening(__open)\n{e}')
-        return
 
     def get_table_as_bytes(self):
         return open(self.tablepath, 'rb')

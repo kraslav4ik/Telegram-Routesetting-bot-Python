@@ -44,7 +44,6 @@ class RoutesettingBot:
         self.logger.info(f'{user} wrote the unknown command "{message}"')
         context.bot.send_message(chat_id=update.effective_chat.id, text="Я не знаю такой команды.")
         self.logger.info('bot answered to the unknown command')
-        return
 
     @is_setters_chat
     def stop(self, update: Update, context: CallbackContext):

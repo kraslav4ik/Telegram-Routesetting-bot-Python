@@ -39,7 +39,6 @@ class Menu:
         user = query.from_user.username.strip().lower()
         query.edit_message_text(text=f"Выбранный вариант: {query.data}.")
         self.logger.info(f'{user} has selected "{query.data}"')
-        return
 
     def handle_setting_table(self, update: Update, context: CallbackContext):
         self.menu_option(update, context)
