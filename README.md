@@ -1,5 +1,5 @@
 # Telegram-Routesetting-bot-Python
-Telegram Bot for keep the statistics of ClmbLab Routesetting process
+Telegram Bot for keeping the statistics of ClmbLab Routesetting process
 
 Single-chat Bot with daily, weekly and monthly scheduled events, conversation-based menus, with polls/buttons/message handlers for collecting info
 
