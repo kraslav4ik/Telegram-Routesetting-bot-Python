@@ -3,7 +3,7 @@ Telegram Bot for keep the statistics of ClmbLab Routesetting process
 
 Single-chat Bot with daily, weekly and monthly scheduled events, conversation-based menus, with polls/buttons/message handlers for collecting info
 
-Based on Excel Table, which is convinient for visualization. 
+Based on Excel Table, which is convenient for visualization. 
 
 Python 3.8
 
