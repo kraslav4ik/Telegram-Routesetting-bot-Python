@@ -11,5 +11,5 @@ Add files "token.txt", "Bot_owner_data", "chat_data", with your TGBot Token, Tel
 
 Launch main.py and tests from the root directory
 
-Decoding: UTF-16 (messages are on russian lang)
+Encoding: UTF-16 (messages are on russian lang)
 
