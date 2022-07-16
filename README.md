@@ -3,19 +3,23 @@ Telegram bot to organize and keep the statistics of Routesetting process. It can
 
 Works with: Python 3.8, UTF-16
 
+```bash
+Telegram-Routesetting-bot-python/> pip install -r requirements.txt
+```
+
 ## How to run
 Add files `token.txt`, `Bot_owner_data`, `chat_data`, with your TGBot Token, TelegramID of bot owner and chat_id resp. to the "data" directory
 ```bash
-RoutesetterBot/> echo $tg_token > ./data/token.txt
-RoutesetterBot/> echo $bot_owner_tg_id > ./data/bot_owner_data
-RoutesetterBot/> echo $tg_chat_id > ./data/chat_data
+Telegram-Routesetting-bot-python/> echo $tg_token > ./data/token.txt
+Telegram-Routesetting-bot-python/> echo $bot_owner_tg_id > ./data/bot_owner_data
+Telegram-Routesetting-bot-python/> echo $tg_chat_id > ./data/chat_data
 ```
 
 ```bash
-RoutesetterBot/> python ./src/main.py
+Telegram-Routesetting-bot-python/> python ./src/main.py
 ```
 
 ## Launch tests
 ```bash
-RoutesetterBot/> python ./tests/test_table_tools.py
+Telegram-Routesetting-bot-python/> python ./tests/test_table_tools.py
 ```
