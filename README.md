@@ -1,9 +1,5 @@
 # Telegram-Routesetting-bot-Python
-Telegram Bot for keeping the statistics of ClmbLab Routesetting process
-
-Single-chat Bot with daily, weekly and monthly scheduled events, conversation-based menus, with polls/buttons/message handlers for collecting info
-
-Based on Excel Table, which is convenient for visualization. 
+Telegram bot to organize and keep the statistics of Routesetting process. It can schedule daily, weekly and monthly events, and users can interact  with it by state-machine menus, polls/buttons/messages.  Statistics are sent in an Excel table for visibility 
 
 Python 3.8
 
