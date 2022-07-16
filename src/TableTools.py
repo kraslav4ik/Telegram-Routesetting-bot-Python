@@ -110,6 +110,7 @@ class RoutesetterTable(object):
 
     def on_scheduler_new_day(self) -> None:
         self.__set_date()
+        self.__open()
         self.logger.info(f'New day had begun. Today is {self.current_date}, next month is {self.next_month}')
 
     def get_setting_dates(self, month=None, year=None) -> List[Tuple[int, int]]:

@@ -6,7 +6,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext
 
 from utils import get_button_tap_info, is_admin_choice, is_setters_chat
-from TableTools import RoutesetterTable
+from TableTools import RoutesetterTable, ResultStatus
 
 
 class Scheduler:
@@ -23,8 +23,9 @@ class Scheduler:
         # context.job_queue.run_once(self.new_month, 5, context=chat_id, name='new_month')
         context.job_queue.run_monthly(self.new_month, context=chat_id, name='new_month', when=datetime.time(hour=9, minute=00, second=00), day=30)
         # context.job_queue.run_once(self.new_week, 5, context=chat_id, name='new_week')
+        # context.job_queue.run_monthly(self.new_month, context=chat_id, name='new_month', when=datetime.time(hour=16, minute=35, second=30), day=9)
         context.job_queue.run_daily(self.new_week, context=chat_id, name='new_week', time=datetime.time(hour=9, minute=00, second=00), days=(6,))
-        # context.job_queue.run_daily(self.new_week, context=chat_id, name='new_week', time=datetime.time(hour=12, minute=27, second=30), days=(2,))
+        # context.job_queue.run_daily(self.new_week, context=chat_id, name='new_week', time=datetime.time(hour=16, minute=31, second=30), days=(3,))
         context.job_queue.run_daily(self.new_day, context=chat_id, name='new_day', time=datetime.time(hour=00, minute=00, second=00), days=(0, 1, 2, 3, 4, 5, 6))
         self.logger.info('monthly, weekly and daily jobs are added to the job_queue')
 
@@ -64,6 +65,7 @@ class Scheduler:
     def handle_weekly_schedule(self, context: CallbackContext, days, chat_id, query) -> None:
         if days:
             # context.job_queue.run_once(self.setting_result, 5, context=chat_id)
+            # context.job_queue.run_daily(self.setting_result, context=chat_id, name='weekly job', time=datetime.time(hour=14, minute=25, second=30), days=(4,))
             context.job_queue.run_daily(self.setting_result, context=chat_id, name='weekly job', time=datetime.time(hour=10, minute=00, second=00), days=days)
             message = 'new weekly work added'
         else:
@@ -131,21 +133,30 @@ class Scheduler:
                     "grade": i,
                     "options": options,
                     "message_id": message.message_id,
+                    "chat_id": chat_id
                     }
             payloads[message.poll.id] = payload
             time.sleep(0.9)
         context.bot_data.update(payloads)
 
     def receive_after_setting_poll(self, update: Update, context: CallbackContext) -> None:
-        if not context.bot_data:
-            return
-        answer = update.poll_answer
-        poll_id = answer.poll_id
-        selected_options = answer.option_ids
-        username = f"@{answer.user.username.strip().lower()}"
-        options = context.bot_data[poll_id]["options"]
-        grade = context.bot_data[poll_id]["grade"]
-        date = context.bot_data[poll_id]["data"]
-        for option_id in selected_options:
-            if not self.table.add_result(date, username, grade, int(options[option_id])):
-                context.bot.send_message(update.effective_chat.id, text=f'{username}, один из твоих результатов не добавлен')
+        try:
+            answer = update.poll_answer
+            poll_id = answer.poll_id
+            if poll_id not in context.bot_data:
+                return
+            selected_options = answer.option_ids
+            username = f"@{answer.user.username.strip().lower()}"
+            options = context.bot_data[poll_id]["options"]
+            grade = context.bot_data[poll_id]["grade"]
+            date = context.bot_data[poll_id]["data"]
+            for option_id in selected_options:
+                status = self.table.add_result(date, username, grade, int(options[option_id])).value
+                if status == ResultStatus.NOT_SETTER.value:
+                    mes_text = f'{username}, твой результат: {grade} : {int(options[option_id])} не добавлен потому что ты не рутсеттер'
+                    context.bot.send_message(context.bot_data[poll_id]["chat_id"], text=mes_text)
+                if status == ResultStatus.FAIL_TO_GET_DATE.value:
+                    mes_text = f'{username}, один из твоих результатов не добавлен'
+                    context.bot.send_message(context.bot_data[poll_id]["chat_id"], text=mes_text)
+        except Exception as e:
+            self.logger.error(f'Error while reading excel table\n {e}')
