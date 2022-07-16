@@ -1,4 +1,4 @@
-# Telegram-Routesetting-bot-Python
+# Telegram Routesetting bot Python
 Telegram bot to organize and keep the statistics of Routesetting process. It can schedule daily, weekly and monthly events, and users can interact  with it by state-machine menus, polls/buttons/messages.  Statistics are sent in an Excel table for visibility 
 
 Works with: Python 3.8, UTF-16
