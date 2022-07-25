@@ -26,27 +26,7 @@ def main() -> None:
     start_handler = CommandHandler('start', routesetter_bot.setting_process.start)
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(CallbackQueryHandler(routesetter_bot.setting_process.handle_days, pattern="^WJ.+$"))
-    # admin_menu_handler = ConversationHandler(
-    #     entry_points=[CommandHandler('admin_menu', routesetter_bot.menu.admin_menu)],
-    #     states={
-    #         routesetter_bot.menu.ADMIN_START: [
-    #             CallbackQueryHandler(routesetter_bot.menu.add_setter_button, pattern='^' + 'add_setter' + '$'),
-    #             CallbackQueryHandler(routesetter_bot.menu.remove_setter_button, pattern='^' + 'remove_setter' + '$'),
-    #             # CallbackQueryHandler(routesetter_bot.menu.add_contest_button, pattern='^' + 'add_contest' + '$'),
-    #             # CallbackQueryHandler(routesetter_bot.menu.remove_contest_button, pattern='^' + 'remove_contest' + '$'),
-    #             # CallbackQueryHandler(routesetter_bot.change_button, pattern='^' + 'change' + '$'),
-    #         ],
-    #         # routesetter_bot.menu.AWAIT_CONTEST: [
-    #         #     MessageHandler(Filters.regex(r'^\d{2}\.\d{2}\.\d{4} [A-z0-9_ -]+ \d{1,5} ?$'),
-    #         #                    routesetter_bot.menu.add_contest_info),
-    #         # ],
-    #         routesetter_bot.menu.AWAIT_SETTER: [
-    #             MessageHandler(Filters.regex('^@[A-z0-9_-]+ ?$'), routesetter_bot.menu.choose_setter)],
-    #         # routesetter_bot.menu.AWAIT_PEOPLE: [
-    #         #     MessageHandler(Filters.regex('^(@[A-z0-9_-]+ ?)+$'), routesetter_bot.menu.add_contest_setters)]},
-    #     },
-    #     fallbacks=[CommandHandler("stop", routesetter_bot.stop)], conversation_timeout=120)
-    # dispatcher.add_handler(admin_menu_handler)
+
     dispatcher.add_handler(CallbackQueryHandler(routesetter_bot.setting_process.add_setter, pattern="^add_setter$"))
     updater.start_polling(allowed_updates=Update.ALL_TYPES)
     updater.idle()
