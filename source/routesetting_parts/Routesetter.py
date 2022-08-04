@@ -10,8 +10,8 @@ class ClimbLabRouteSetter(object):
         self.logger = logger or logging.getLogger(__name__)
         self.logger.info(f"Routesetter {self.telegram_id} has been added")
 
-    def show_setter_info(self):
-        pass
+    def show_setter_info(self) -> dict:
+        return {self.telegram_id: self.boulders}
 
     def __del__(self):
         self.logger.info(f"Routesetter {self.telegram_id} has been deleted")

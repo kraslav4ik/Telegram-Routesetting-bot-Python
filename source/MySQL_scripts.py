@@ -70,10 +70,13 @@ class SQLScripts(object):
                     "contest_id INT NOT NULL, user INT NOT NULL, payment INT,"
                     "FOREIGN KEY (contest_id) REFERENCES contests(contest_id) ON UPDATE CASCADE ON DELETE CASCADE, "
                     "FOREIGN KEY (user) REFERENCES users(telegram_id) ON UPDATE CASCADE ON DELETE CASCADE);")
+        create_global_results = ("CREATE TABLE global_results(grade INT NOT NULL, amount INT NOT NULL DEFAULT 0, "
+                                 "FOREIGN KEY (grade) REFERENCES routes(route_id))")
 
         table_names = {"routes": create_routes, "users": create_users,
                        "contests": create_contests, "settings": create_settings,
                        "setting_users": create_setting_users, "contest_users": create_contest_users,
+                       "global_results": create_global_results
                        }
         try:
             self.cursor.execute("SHOW TABLES")
@@ -151,6 +154,27 @@ class SQLScripts(object):
         self.cnx.commit()
 
     def period_end(self):
+        self.cursor.execute("SELECT route_id FROM routes")
+        routes = [route_id[0] for route_id in self.cursor]
+        for route_id in routes:
+            self.cursor.execute(f"SELECT amount FROM global_results WHERE grade = {route_id}")
+            prev_res = [amount for amount in self.cursor]
+            if not prev_res:
+                self.cursor.execute(f"INSERT INTO global_results(grade) VALUES({route_id})")
+                self.cnx.commit()
+                prev_res = 0
+            else:
+                prev_res = prev_res[0][0]
+            self.cursor.execute(f"SELECT count FROM setting_users WHERE category = {route_id}")
+            cur_res = [count for count in self.cursor]
+            cur_res = 0 if not cur_res else cur_res[0][0]
+            self.cursor.execute(f"UPDATE global_results SET amount = "
+                                f"{prev_res} + {cur_res} "
+                                f"WHERE grade = {route_id}")
+            self.cnx.commit()
+        self.cursor.execute("DELETE FROM setting_users")
+        self.cursor.execute("DELETE FROM settings")
+        self.cnx.commit()
         return
 
     def add_setter(self, tg_id):
@@ -162,6 +186,6 @@ class SQLScripts(object):
             self.logger.error(e)
             return False
 
+
 # testcase = SQLScripts("../data/database_info")
-# testcase.add_setting(datetime.date(year=2022, month=5, day=13))
-# testcase.add_res(12345, "7abc", 2, datetime.date(year=2022, month=5, day=13))
+# testcase.period_end()

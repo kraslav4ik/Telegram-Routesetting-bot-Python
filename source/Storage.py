@@ -23,11 +23,11 @@ class Storage(object):
         db_info_path = path or "../data/database_info"
         self.logger = logger or logging.getLogger(__name__)
         self.table = SQLScripts(db_info_path)
-        self.settings = []
         self.__get_all_table_info()
+        self.logger.info('STORAGE INITIALIZED')
 
-    def __get_all_table_info(self):
-        self.grades = self.table.get_grades
+    def __get_all_table_info(self) -> None:
+        self.grades = self.table.get_grades()
         users_list = self.table.get_users_info()
         setting_list = self.table.get_settings_info()
         self.users = [
@@ -39,23 +39,28 @@ class Storage(object):
         print(self.users)
         print(self.settings)
 
-    def add_setting(self, date: datetime.date):
-        self.settings.append(ClimbLabSetting(date))
+    def add_setting(self, date: datetime.date) -> None:
+        setting = next((setting for setting in self.settings if setting.date == date), None)
+        if setting:
+            self.logger.info(f'Setting with date {date} already exists')
+            return
+        self.settings.append(ClimbLabSetting(setting_date=date))
         self.table.add_setting(date)
 
-    def add_single_res(self, tg_id: int, grade: str, amount: int, date: datetime.date):
+    def add_single_res(self, tg_id: int, grade: str, amount: int, date: datetime.date) -> AddResStatus:
         setting = next((setting for setting in self.settings if setting.date == date), None)
         user = next((user for user in self.users if user.telegram_id == tg_id), None)
         if not setting:
-            self.logger.info("user voted in setting which isnt exists")
+            self.logger.info("user voted in setting which is not exists")
             return AddResStatus.NO_SETTING
         if not user:
             self.logger.info("Non-routesetter voted")
             return AddResStatus.USER_NOT_SETTER
         self.table.add_res(tg_id, grade, amount, setting.date)
         setting.boulders[user][grade] = amount
+        user.boulders[grade] += amount
 
-    def add_setter(self, tg_id):
+    def add_setter(self, tg_id: int) -> AddSetterStatus:
         setter_exists = next((user for user in self.users if user.telegram_id == tg_id), None)
         if setter_exists:
             self.logger.info(f'setter {tg_id} already exists')
@@ -67,6 +72,25 @@ class Storage(object):
             return AddSetterStatus.ADDED
         return AddSetterStatus.TABLE_ERROR
 
+    def period_end(self) -> tuple:
+        month_setter_res = {}
+        month_settings_res = {}
+        for setter in self.users:
+            month_setter_res.update(setter.show_setter_info())
+            setter.boulders = None
+        for setting in self.settings:
+            month_settings_res.update(setting.show_setting_info())
+        self.settings = []
+        self.table.period_end()
+        return month_setter_res, month_settings_res
+
+
+# s = Storage()
+# s.add_setting(date=datetime.date.today())
+# s.add_single_res(tg_id=401528773, grade='7abc', amount=3, date=datetime.date.today())
+# s.add_single_res(tg_id=401528773, grade='5', amount=1, date=datetime.date.today())
+# s.add_single_res(tg_id=401528773, grade='6a', amount=2, date=datetime.date.today())
+# s.add_single_res(tg_id=401528773, grade='J', amount=3, date=datetime.date.today())
 
 
 

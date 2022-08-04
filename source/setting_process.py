@@ -3,7 +3,7 @@ import datetime
 import time
 from collections import defaultdict
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import CallbackContext
+from telegram.ext import CallbackContext, ConversationHandler
 from Storage import Storage, AddResStatus, AddSetterStatus
 
 
@@ -13,11 +13,11 @@ WEEKDAYS = {0: "Пн", 1: "Вт", 2: "Ср", 3: "Чт", 4: "Пт", 5: "Сб", 6:
 class SettingProcess(object):
 
     def __init__(self, storage: Storage = None, logger=None):
+        self.setting_days = {"first": 1, "second": 3}
+        self.storage = storage or Storage()
         self.logger = logger or logging.getLogger(__name__)
         self.AWAIT_DATE = 1
         self.AWAIT_DAYS = 1
-        self.setting_days = {"first": 1, "second": 3}
-        self.storage = storage or Storage()
 
     def start(self, update: Update, context: CallbackContext) -> None:
         try:
@@ -26,11 +26,10 @@ class SettingProcess(object):
                 self.logger.info('Default jobs are already exist and will not be added again')
                 context.bot.send_message(update.effective_chat.id, "Bot is already working")
                 return
-            context.job_queue.run_daily(self.new_week, context=chat_id, name='new_week', time=datetime.time(hour=22, minute=23, second=00), days=(3,))
-            # context.job_queue.run_daily(
-            #     self.new_week, context=chat_id, name='new_week',
-            #     time=datetime.time(hour=9, minute=00, second=00), days=(6,)
-            # )
+            context.job_queue.run_daily(
+                self.new_week, context=chat_id, name='new_week',
+                time=datetime.time(hour=9, minute=00, second=00), days=(6,)
+            )
             self.logger.info("Bot is launched")
             context.bot.send_message(update.effective_chat.id, "Monitoring of setting process is Launched\n"
                                                                "Now let's add setters")
@@ -70,8 +69,27 @@ class SettingProcess(object):
             job.schedule_removal()
         return True
 
-    def set_end_period(self, update: Update, context: CallbackContext):
-        return
+    def end_period(self, update: Update, context: CallbackContext) -> ConversationHandler.END:
+        setters_res, settings_res = self.storage.period_end()
+        chat_id = update.effective_chat.id
+        users = {}
+        setters_mes = "Результаты за месяц:\n"
+        for setter in setters_res:
+            if setters_res[setter]:
+                chat_member = context.bot.get_chat_member(chat_id, setter)
+                username = chat_member.user.username
+                users[setter] = f"@{username}"
+                setters_mes += f'\n@{username}:\n'
+                for grade in sorted(setters_res[setter]):
+                    setters_mes += f'        {grade}: {setters_res[setter][grade]}\n'
+        context.bot.send_message(chat_id, text=setters_mes)
+        setting_mes = "Накрутки за этот месяц:"
+        for setting in settings_res:
+            setting_mes += f"\n{setting}: "
+            setting_mes += ", ".join([users[setter] for setter in settings_res[setting]])
+        context.bot.send_message(chat_id, setting_mes)
+
+        return ConversationHandler.END
 
     def handle_days(self, update: Update, context: CallbackContext):
         try:
@@ -87,6 +105,9 @@ class SettingProcess(object):
                 date = self.get_date_by_weekday(day)
                 self.storage.add_setting(date)
                 period = datetime.datetime(year=date.year, month=date.month, day=date.day, hour=10, minute=0, second=0)
+                if context.job_queue.get_jobs_by_name(f"setting {date}"):
+                    self.logger.info(f'Job for setting on {date} already exists')
+                    continue
                 context.job_queue.run_once(self.send_after_setting_poll, period,
                                            context={"chat": chat_id, "date": date}, name=f"setting {date}")
                 self.logger.info(f"created job for setting {date}")
@@ -157,13 +178,16 @@ class SettingProcess(object):
 
     def add_setter(self, update: Update, context: CallbackContext):
         user_id = update.effective_user.id
-        status = self.storage.add_setter(user_id).value
         query = update.callback_query
+        status = self.storage.add_setter(user_id).value
+
         if status == AddSetterStatus.ALREADY_EXISTS.value:
             query.answer(text='Ты уже есть в списке накрутчиков')
         if status == AddSetterStatus.ADDED.value:
             query.answer(text='Ты добавлен(а) в список накрутчиков CL')
 
+    def change(self, update: Update, context: CallbackContext):
+        return
 
 
 
