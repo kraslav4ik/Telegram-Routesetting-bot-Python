@@ -1,5 +1,6 @@
 import datetime
 import logging
+from collections import defaultdict
 from routesetting_parts import ClimbLabRouteSetter, ClimbLabSetting
 from MySQL_scripts import SQLScripts
 from enum import Enum
@@ -15,6 +16,10 @@ class AddSetterStatus(Enum):
     ALREADY_EXISTS = 1
     ADDED = 2
     TABLE_ERROR = 3
+
+class GetResStatus(Enum):
+    USER_NOT_SETTER = 1
+    SUCCESS = 2
 
 
 class Storage(object):
@@ -36,8 +41,8 @@ class Storage(object):
         self.settings = [
             ClimbLabSetting(setting_date=setting["date"],
                             boulders=setting["users"]) for setting in setting_list]
-        print(self.users)
-        print(self.settings)
+        # print(self.users)
+        # print(self.settings)
 
     def add_setting(self, date: datetime.date) -> None:
         setting = next((setting for setting in self.settings if setting.date == date), None)
@@ -59,6 +64,7 @@ class Storage(object):
         self.table.add_res(tg_id, grade, amount, setting.date)
         setting.boulders[user][grade] = amount
         user.boulders[grade] += amount
+        return AddResStatus.SUCCESS
 
     def add_setter(self, tg_id: int) -> AddSetterStatus:
         setter_exists = next((user for user in self.users if user.telegram_id == tg_id), None)
@@ -83,6 +89,14 @@ class Storage(object):
         self.settings = []
         self.table.period_end()
         return month_setter_res, month_settings_res
+
+    def get_single_res(self, tg_id: int):
+        setter = next((user for user in self.users if user.telegram_id == tg_id), None)
+        if not setter:
+            self.logger.info("Non-routesetter asked his results")
+            return AddResStatus.USER_NOT_SETTER, defaultdict()
+        res = setter.show_setter_info()[setter.telegram_id]
+        return AddResStatus.SUCCESS, res
 
 
 # s = Storage()

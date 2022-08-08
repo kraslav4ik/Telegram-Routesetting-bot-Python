@@ -28,15 +28,30 @@ def main() -> None:
     dispatcher.add_handler(CallbackQueryHandler(routesetter_bot.setting_process.handle_days, pattern="^WJ.+$"))
     dispatcher.add_handler(CallbackQueryHandler(routesetter_bot.setting_process.add_setter, pattern="^add_setter$"))
     admin_menu_handler = ConversationHandler(
-        entry_points=[CommandHandler('admin_menu', routesetter_bot.menu.admin_menu)],
+        entry_points=[CommandHandler('admin_menu', routesetter_bot.admin_menu)],
         states={
-            routesetter_bot.menu.ADMIN_START: [
+            routesetter_bot.ADMIN_START: [
                 CallbackQueryHandler(routesetter_bot.setting_process.end_period, pattern='^' + 'end_period' + '$'),
                 CallbackQueryHandler(routesetter_bot.setting_process.change, pattern='^' + 'change' + '$'),
-                CallbackQueryHandler(routesetter_bot.menu.add_setter_button, pattern='^' + 'add_setter' + '$'),
-                CallbackQueryHandler(routesetter_bot.menu.remove_setter_button, pattern='^' + 'remove_setter' + '$'),
+                CallbackQueryHandler(routesetter_bot.setting_process.add_setter_button, pattern='^' + 'add_setter' + '$'),
+                CallbackQueryHandler(routesetter_bot.setting_process.remove_setter_button, pattern='^' + 'remove_setter' + '$'),
             ]}, fallbacks=[CommandHandler("stop", routesetter_bot.stop)], conversation_timeout=120)
     dispatcher.add_handler(admin_menu_handler)
+    user_menu_handler = ConversationHandler(entry_points=[CommandHandler('menu', routesetter_bot.user_menu)],
+        states={
+           routesetter_bot.START: [
+               CallbackQueryHandler(routesetter_bot.setting_process.show_user_res,
+                                    pattern='^' + 'show_results' + '$'),
+               CallbackQueryHandler(routesetter_bot.setting_process.handle_richest,
+                                    pattern='^' + 'richest' + '$'),
+               CallbackQueryHandler(routesetter_bot.setting_process.add_single_res,
+                                    pattern='^' + '3' + '$')]},
+                                           # routesetter_bot.menu.AWAIT_RESULT: [
+                                           #     MessageHandler(Filters.regex(r'^\d{2}\.\d{2}\.\d{4}( \d){5} ?$'),
+                                           #                    routesetter_bot.menu.add_single_results)]
+       fallbacks=[CommandHandler("stop", routesetter_bot.stop)],
+       conversation_timeout=120)
+    dispatcher.add_handler(user_menu_handler)
     dispatcher.add_handler(PollAnswerHandler(routesetter_bot.setting_process.receive_after_setting_poll))
     updater.start_polling(allowed_updates=Update.ALL_TYPES)
     updater.idle()

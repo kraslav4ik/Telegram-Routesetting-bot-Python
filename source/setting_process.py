@@ -4,7 +4,7 @@ import time
 from collections import defaultdict
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, ConversationHandler
-from Storage import Storage, AddResStatus, AddSetterStatus
+from Storage import Storage, AddResStatus, AddSetterStatus, GetResStatus
 
 
 WEEKDAYS = {0: "Пн", 1: "Вт", 2: "Ср", 3: "Чт", 4: "Пт", 5: "Сб", 6: "Вс"}
@@ -33,9 +33,7 @@ class SettingProcess(object):
             self.logger.info("Bot is launched")
             context.bot.send_message(update.effective_chat.id, "Monitoring of setting process is Launched\n"
                                                                "Now let's add setters")
-            keyboard = [[InlineKeyboardButton("Я рутсеттер", callback_data="add_setter")]]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            context.bot.send_message(chat_id, text='Кликни если ты рутсеттер', reply_markup=reply_markup)
+            self.add_setter_button(update, context)
 
         except Exception as e:
             self.logger.error(e)
@@ -68,28 +66,6 @@ class SettingProcess(object):
         for job in current_week_jobs:
             job.schedule_removal()
         return True
-
-    def end_period(self, update: Update, context: CallbackContext) -> ConversationHandler.END:
-        setters_res, settings_res = self.storage.period_end()
-        chat_id = update.effective_chat.id
-        users = {}
-        setters_mes = "Результаты за месяц:\n"
-        for setter in setters_res:
-            if setters_res[setter]:
-                chat_member = context.bot.get_chat_member(chat_id, setter)
-                username = chat_member.user.username
-                users[setter] = f"@{username}"
-                setters_mes += f'\n@{username}:\n'
-                for grade in sorted(setters_res[setter]):
-                    setters_mes += f'        {grade}: {setters_res[setter][grade]}\n'
-        context.bot.send_message(chat_id, text=setters_mes)
-        setting_mes = "Накрутки за этот месяц:"
-        for setting in settings_res:
-            setting_mes += f"\n{setting}: "
-            setting_mes += ", ".join([users[setter] for setter in settings_res[setting]])
-        context.bot.send_message(chat_id, setting_mes)
-
-        return ConversationHandler.END
 
     def handle_days(self, update: Update, context: CallbackContext):
         try:
@@ -173,8 +149,44 @@ class SettingProcess(object):
                 if status == AddResStatus.NO_SETTING.value:
                     mes_text = f'{username}, твой результат: {grade} : {int(options[option_id])} не добавлен: ERROR'
                     context.bot.send_message(context.bot_data[poll_id]["chat_id"], text=mes_text)
+                if status == AddResStatus.SUCCESS.value:
+                    self.logger.info(f"added result {username} {grade}: {int(options[option_id])}")
         except Exception as e:
             self.logger.error(e)
+
+    def end_period(self, update: Update, context: CallbackContext) -> ConversationHandler.END:
+        setters_res, settings_res = self.storage.period_end()
+        chat_id = update.effective_chat.id
+        users = {}
+        setters_mes = "Результаты за месяц:\n"
+        for setter in setters_res:
+            if setters_res[setter]:
+                chat_member = context.bot.get_chat_member(chat_id, setter)
+                username = chat_member.user.username
+                users[setter] = f"@{username}"
+                setters_mes += f'\n@{username}:\n'
+                for grade in sorted(setters_res[setter]):
+                    setters_mes += f'        {grade}: {setters_res[setter][grade]}\n'
+        context.bot.send_message(chat_id, text=setters_mes)
+        setting_mes = "Накрутки за этот месяц:"
+        for setting in settings_res:
+            setting_mes += f"\n{setting}: "
+            setting_mes += ", ".join([users[setter] for setter in settings_res[setting]])
+        context.bot.send_message(chat_id, setting_mes)
+        return ConversationHandler.END
+
+    def change(self, update: Update, context: CallbackContext):
+        return
+
+    def add_setter_button(self, update: Update, context: CallbackContext):
+        chat_id = update.effective_chat.id
+        keyboard = [[InlineKeyboardButton("Я рутсеттер", callback_data="add_setter")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        context.bot.send_message(chat_id, text='Кликни если ты рутсеттер', reply_markup=reply_markup)
+        return ConversationHandler.END
+
+    def remove_setter_button(self, update: Update, context: CallbackContext):
+        return
 
     def add_setter(self, update: Update, context: CallbackContext):
         user_id = update.effective_user.id
@@ -186,8 +198,30 @@ class SettingProcess(object):
         if status == AddSetterStatus.ADDED.value:
             query.answer(text='Ты добавлен(а) в список накрутчиков CL')
 
-    def change(self, update: Update, context: CallbackContext):
-        return
+    def show_user_res(self, update: Update, context: CallbackContext) -> ConversationHandler.END:
+        chat_id = update.effective_chat.id
+        user_id = update.effective_user.id
+        username = update.effective_user.username
+        res = self.storage.get_single_res(user_id)
+        if res[0].value == GetResStatus.USER_NOT_SETTER:
+            context.bot.send_message(chat_id, 'Ты не рутсеттер')
+            return ConversationHandler.END
+        res_string = '\n'.join([f'{i}, {res[i]}' for i in res[1]])
+        if not res_string:
+            context.bot.send_message(chat_id, f'{username}, ты не крутил(а) в этом месяце')
+            self.logger.info(f'Bot sent {username} results')
+            return ConversationHandler.END
+        context.bot.send_message(chat_id, f'{username}, твои результаты:\n{res_string}')
+        self.logger.info(f"Bot sent {username}'s results")
+        return ConversationHandler.END
+
+    def handle_richest(self):
+        pass
+
+    def add_single_res(self):
+        pass
+
+
 
 
 
