@@ -16,8 +16,9 @@ class SettingProcess(object):
         self.setting_days = {"first": 1, "second": 3}
         self.storage = storage or Storage()
         self.logger = logger or logging.getLogger(__name__)
-        self.AWAIT_DATE = 1
-        self.AWAIT_DAYS = 1
+        self.AWAIT_DATE = 2
+        self.AWAIT_DAYS = 2
+        self.AWAIT_RESULTS = 2
 
     def start(self, update: Update, context: CallbackContext) -> None:
         try:
@@ -218,7 +219,7 @@ class SettingProcess(object):
     def handle_richest(self):
         pass
 
-    def add_single_res(self):
+    def add_single_res_button(self):
         pass
 
 

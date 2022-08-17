@@ -44,7 +44,7 @@ def main() -> None:
                                     pattern='^' + 'show_results' + '$'),
                CallbackQueryHandler(routesetter_bot.setting_process.handle_richest,
                                     pattern='^' + 'richest' + '$'),
-               CallbackQueryHandler(routesetter_bot.setting_process.add_single_res,
+               CallbackQueryHandler(routesetter_bot.setting_process.add_single_res_button,
                                     pattern='^' + '3' + '$')]},
                                            # routesetter_bot.menu.AWAIT_RESULT: [
                                            #     MessageHandler(Filters.regex(r'^\d{2}\.\d{2}\.\d{4}( \d){5} ?$'),
